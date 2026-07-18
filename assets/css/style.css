@@ -1,0 +1,241 @@
+:root {
+  --color-primary: #2a78d6;
+  --color-primary-dark: #123a6b;
+  --color-primary-light: #6badf0;
+  --color-bg: #f9f9f7;
+  --color-bg-soft: #eaf2fc;
+  --color-card-bg: #ffffff;
+  --color-border: rgba(11, 11, 11, 0.08);
+  --color-text: #0b0b0b;
+  --color-text-soft: #52514e;
+  --color-navy-950: #060a16;
+  --color-navy-900: #0f1530;
+  --status-good: #0ca30c;
+  --status-good-wash: #e8f7e8;
+  --status-warning: #b9820f;
+  --status-warning-wash: #fff6e2;
+  --status-critical: #e8384f;
+  --status-critical-wash: #fdeaee;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Header ── */
+
+.crm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--color-navy-950);
+  color: #fff;
+}
+.crm-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+}
+.crm-header__brand img { display: block; }
+
+/* ── Layout ── */
+
+.crm-main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.crm-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.crm-toolbar__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.crm-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary-dark);
+  background: var(--color-bg-soft);
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+
+h1 { font-size: 28px; margin: 0; }
+h3 { margin: 0 0 6px; }
+h4 { margin: 0 0 8px; }
+
+.crm-muted { color: var(--color-text-soft); font-size: 14px; }
+.crm-hint { font-size: 0.8rem; min-height: 1.2em; margin: 4px 0 0; color: var(--color-text-soft); }
+
+/* ── Buttons ── */
+
+.crm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  transition: transform 0.15s ease;
+}
+.crm-btn:hover { transform: translateY(-1px); }
+.crm-btn--sm { padding: 6px 14px; font-size: 12.5px; }
+.crm-btn--primary { background: var(--color-primary); color: #fff; }
+.crm-btn--dark { background: var(--color-navy-900); color: #fff; }
+.crm-btn--danger { background: var(--status-critical); color: #fff; }
+.crm-btn-row { display: flex; gap: 10px; }
+
+/* ── Forms ── */
+
+.crm-form { display: flex; flex-direction: column; gap: 6px; }
+.crm-field-label { font-size: 13px; font-weight: 700; margin-top: 10px; }
+.crm-form input,
+.crm-form select,
+.crm-form textarea,
+.crm-search-input,
+.crm-pin-input {
+  font-family: inherit;
+  font-size: 15px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--color-border);
+  background: #fff;
+  outline: none;
+  width: 100%;
+}
+.crm-form input:focus,
+.crm-form select:focus,
+.crm-form textarea:focus {
+  border-color: var(--color-primary);
+}
+.crm-search-input { max-width: 380px; margin-bottom: 20px; }
+
+.crm-form-status { font-size: 13px; min-height: 1.2em; margin: 6px 0 0; }
+.crm-form-status--ok { color: var(--status-good); }
+.crm-form-status--error { color: var(--status-critical); }
+
+/* ── Cards ── */
+
+.crm-card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 10px;
+}
+.crm-lead-card { cursor: pointer; }
+.crm-lead-card:hover { border-color: var(--color-primary-light); }
+
+/* ── Status pills / badges ── */
+
+.crm-status-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.crm-status-pill--lead { background: var(--color-bg-soft); color: var(--color-primary-dark); }
+.crm-status-pill--contacted { background: var(--status-warning-wash); color: var(--status-warning); }
+.crm-status-pill--customer { background: var(--status-good-wash); color: var(--status-good); }
+.crm-status-pill--lost { background: var(--status-critical-wash); color: var(--status-critical); }
+
+.crm-user-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+}
+.crm-user-badge {
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ── Modals ── */
+
+.crm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 10, 22, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 200;
+}
+.crm-modal-overlay[hidden] { display: none; }
+.crm-modal-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+.crm-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--color-text-soft);
+}
+
+/* ── Login / auth page ── */
+
+.crm-auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-navy-950);
+  padding: 20px;
+}
+.crm-auth-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 40px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+}
+.crm-auth-card h1 { margin-bottom: 20px; font-size: 22px; }
+.crm-auth-card .crm-form { text-align: left; }
+
+/* ── Pipeline PIN login ── */
+
+.crm-pin-users { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.crm-pin-input {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}

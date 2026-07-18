@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline | msnexo CRM</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+<header class="crm-header">
+  <a href="/pipeline/" class="crm-header__brand">
+    <img src="/assets/img/logo.png" alt="msnexo" height="28">
+    <span>CRM</span>
+  </a>
+  <div class="crm-header__right"><span id="pipelineUserBadge" class="crm-user-badge"></span></div>
+</header>
+<main class="crm-main">
+  <div class="crm-toolbar">
+    <div>
+      <span class="crm-eyebrow">msnexo Vertrieb</span>
+      <h1>Pipeline</h1>
+    </div>
+    <div class="crm-toolbar__actions">
+      <button type="button" id="addLeadBtn" class="crm-btn crm-btn--primary">+ Neuer Lead</button>
+      <button type="button" id="toggleViewBtn" class="crm-btn crm-btn--dark">Alle anzeigen</button>
+      <button type="button" id="presentBtn" class="crm-btn crm-btn--dark">Live-Präsentation</button>
+      <button type="button" id="logoutPipelineBtn" class="crm-btn crm-btn--dark">Abmelden</button>
+    </div>
+  </div>
+  <p class="crm-muted" id="dailyCounter">Wird geladen …</p>
+  <input type="text" id="pipelineSearch" class="crm-search-input" placeholder="Firma suchen …">
+
+  <div id="pipelineLeads"></div>
+  <div id="pipelineOverdue"></div>
+  <div id="pipelineToday"></div>
+  <div id="pipelineTomorrow"></div>
+  <div id="pipelineDates"></div>
+
+  <button type="button" id="toggleArchiveBtn" class="crm-btn crm-btn--dark crm-btn--sm">Archiv anzeigen</button>
+  <div id="pipelineArchive" hidden></div>
+</main>
+
+<div class="crm-modal-overlay" id="pipelineLoginOverlay" hidden>
+  <div class="crm-modal-box" style="max-width:360px;text-align:center;">
+    <span class="crm-eyebrow">msnexo Vertrieb</span>
+    <h2 style="margin-bottom:24px;">Wer bist du?</h2>
+    <div class="crm-pin-users"><button type="button" class="crm-btn crm-btn--primary pipeline-user-btn" data-user="REY">REY</button></div>
+    <div id="pipelinePinEntry" style="display:none;">
+      <p class="crm-muted" id="pipelinePinLabel" style="margin-bottom:10px;"></p>
+      <input type="password" id="pipelinePinInput" placeholder="PIN eingeben" maxlength="20" class="crm-pin-input">
+      <button type="button" id="pipelinePinConfirm" class="crm-btn crm-btn--primary" style="width:100%;">Einloggen</button>
+      <p class="crm-form-status crm-form-status--error" id="pipelinePinError"></p>
+    </div>
+  </div>
+</div>
+
+<div class="crm-modal-overlay" id="addLeadOverlay" hidden>
+  <div class="crm-modal-box">
+    <button type="button" class="crm-modal-close" id="addLeadClose" aria-label="Schließen">&times;</button>
+    <h3>Neuen Lead anlegen</h3>
+    <form id="addLeadForm" class="crm-form">
+      <label class="crm-field-label" for="leadName">Firma</label>
+      <input type="text" id="leadName" required>
+      <label class="crm-field-label" for="leadCategory">Kategorie</label>
+      <input type="text" id="leadCategory" list="categoryOptions" placeholder="Website">
+      <datalist id="categoryOptions"><option value="Website"></option><option value="Shop"></option><option value="SEO"></option><option value="Wartungsvertrag"></option><option value="Social Media"></option></datalist>
+      <label class="crm-field-label" for="leadStatus">Status</label>
+      <select id="leadStatus">
+        <option value="lead">Lead</option>
+        <option value="contacted">Kontaktiert</option>
+        <option value="customer">Kunde</option>
+        <option value="lost">Kein Interesse</option>
+      </select>
+      <label class="crm-field-label" for="leadWebsite">Webseite (optional)</label>
+      <input type="url" id="leadWebsite" placeholder="https://...">
+      <label class="crm-field-label" for="leadAddress">Adresse (optional)</label>
+      <input type="text" id="leadAddress">
+      <label class="crm-field-label" for="leadPersonName">Ansprechpartner (optional)</label>
+      <input type="text" id="leadPersonName">
+      <label class="crm-field-label" for="leadPersonPhone">Telefon (optional)</label>
+      <input type="tel" id="leadPersonPhone">
+      <label class="crm-field-label" for="leadPersonEmail">E-Mail (optional)</label>
+      <input type="email" id="leadPersonEmail">
+      <p class="crm-form-status" id="addLeadStatus" role="status" aria-live="polite"></p>
+      <button type="submit" class="crm-btn crm-btn--primary">Anlegen</button>
+    </form>
+  </div>
+</div>
+
+<div class="crm-modal-overlay" id="leadDetailOverlay" hidden>
+  <div class="crm-modal-box crm-form" style="max-width:680px;">
+    <button type="button" class="crm-modal-close" id="leadDetailClose" aria-label="Schließen">&times;</button>
+    <span class="crm-status-pill" id="leadDetailStatus"></span>
+    <label class="crm-field-label" for="leadDetailNameInput">Name / Firma</label>
+    <input type="text" id="leadDetailNameInput">
+    <label class="crm-field-label" for="leadDetailCategoryInput">Kategorie</label>
+    <input type="text" id="leadDetailCategoryInput" list="detailCategoryOptions">
+    <datalist id="detailCategoryOptions"><option value="Website"></option><option value="Shop"></option><option value="SEO"></option><option value="Wartungsvertrag"></option><option value="Social Media"></option></datalist>
+    <label class="crm-field-label" for="leadDetailWebsite">Webseite</label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="url" id="leadDetailWebsite" style="flex:1;">
+      <a id="leadDetailWebsiteOpen" href="#" target="_blank" rel="noopener" class="crm-btn crm-btn--dark crm-btn--sm" hidden>↗ Öffnen</a>
+    </div>
+    <label class="crm-field-label" for="leadDetailAddress">Adresse</label>
+    <input type="text" id="leadDetailAddress">
+
+    <label class="crm-field-label" for="leadStatusSelect">Status ändern</label>
+    <select id="leadStatusSelect">
+      <option value="lead">Lead</option>
+      <option value="contacted">Kontaktiert</option>
+      <option value="customer">Kunde</option>
+      <option value="lost">Kein Interesse</option>
+    </select>
+
+    <div style="margin-top:16px;">
+      <label class="crm-field-label">Lead übergeben an</label>
+      <div style="display:flex;gap:8px;"><button type="button" class="crm-btn transfer-btn" data-target="REY" style="flex:1;">REY</button></div>
+      <p id="transferStatus" class="crm-hint"></p>
+    </div>
+
+    <label class="crm-field-label" for="leadDetailNotes">Notizen</label>
+    <textarea id="leadDetailNotes" rows="3"></textarea>
+    <button type="button" id="leadDetailSaveNotes" class="crm-btn crm-btn--dark crm-btn--sm">Speichern</button>
+
+    <h4 style="margin-top:24px;">Ansprechpartner</h4>
+    <div id="leadDetailPeople"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+      <input type="text" id="newPersonName" placeholder="Name" style="flex:1;min-width:120px;">
+      <input type="tel" id="newPersonPhone" placeholder="Telefon" style="flex:1;min-width:120px;">
+      <input type="email" id="newPersonEmail" placeholder="E-Mail" style="flex:1;min-width:160px;">
+      <button type="button" id="addPersonBtn" class="crm-btn crm-btn--dark crm-btn--sm">+ Hinzufügen</button>
+    </div>
+
+    <h4 style="margin-top:24px;">Logeintrag</h4>
+    <label class="crm-field-label" for="nextContactNotes">Notiz / Was wurde besprochen?</label>
+    <textarea id="nextContactNotes" rows="2" placeholder="z. B. Voicemail hinterlassen, Interesse vorhanden …"></textarea>
+    <label class="crm-field-label" for="nextContactDate">Nächster Kontakt am (optional)</label>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input type="datetime-local" id="nextContactDate" style="flex:1;">
+      <button type="button" id="reminderBellBtn" class="crm-btn crm-btn--dark" title="Erinnerung setzen">🔔</button>
+    </div>
+    <p id="reminderStatus" class="crm-hint"></p>
+    <button type="button" id="logContactBtn" class="crm-btn crm-btn--primary">Eintrag speichern</button>
+    <p class="crm-form-status" id="logStatus" role="status" aria-live="polite"></p>
+
+    <h4 style="margin-top:20px;">Logbuch</h4>
+    <div id="leadDetailHistory"><p class="crm-muted">Noch keine Einträge.</p></div>
+
+    <div class="crm-btn-row" style="margin-top:24px;flex-wrap:wrap;">
+      <button type="button" id="markCustomerBtn" class="crm-btn crm-btn--primary">Als Kunde markieren</button>
+      <button type="button" id="markLostBtn" class="crm-btn crm-btn--dark">Kein Interesse</button>
+      <button type="button" id="deleteLeadBtn" class="crm-btn crm-btn--danger">Löschen</button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" defer></script>
+<script>window.SUPABASE_URL="https://DEIN-PROJEKT.supabase.co";window.SUPABASE_ANON_KEY="DEIN-ANON-KEY";window.PIPELINE_PINS={"REY": "1111"};window.PRESENTER_SECRET="aendere-mich-vor-dem-ersten-live-einsatz";</script>
+<script src="/assets/js/auth.js" defer></script>
+<script src="/assets/js/pipeline.js" defer></script>
+</body>
+</html>
