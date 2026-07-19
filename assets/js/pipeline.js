@@ -115,6 +115,17 @@
     var pipelineArchive = document.getElementById("pipelineArchive");
     var toggleArchiveBtn = document.getElementById("toggleArchiveBtn");
 
+    var apptMode = null;
+    var apptDate = null;
+    var apptSlot = null;
+    var apptDaysRow = document.getElementById("apptDaysRow");
+    var apptSlotsRow = document.getElementById("apptSlotsRow");
+    var apptStatus = document.getElementById("apptStatus");
+    var apptBookBtn = document.getElementById("apptBookBtn");
+    var apptNameInput = document.getElementById("apptName");
+    var apptEmailInput = document.getElementById("apptEmail");
+    var apptPhoneInput = document.getElementById("apptPhone");
+
     var detailOverlay = document.getElementById("leadDetailOverlay");
     var detailClose = document.getElementById("leadDetailClose");
     var detailStatus = document.getElementById("leadDetailStatus");
@@ -354,9 +365,170 @@
       var xferStatus = document.getElementById("transferStatus");
       if (xferStatus) xferStatus.textContent = "Aktuell: " + (p.assigned_to || "REY");
       detailOverlay.hidden = false;
-      loadPeople(id);
+      resetApptWidget();
+      apptNameInput.value = p.name || "";
+      loadPeople(id).then(function () {
+        var firstPerson = currentPeople[0];
+        if (firstPerson) {
+          apptEmailInput.value = firstPerson.email || "";
+          apptPhoneInput.value = firstPerson.phone || "";
+        }
+      });
       loadHistory(id);
     }
+
+    // ── Termin fest vereinbaren ─────────────────────────────────────────────
+    function nextWeekdaysAppt(count) {
+      var dayNames = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+      var days = [];
+      var d = new Date();
+      while (days.length < count) {
+        var day = d.getDay();
+        if (day >= 1 && day <= 5) {
+          var iso = d.toISOString().slice(0, 10);
+          var label = dayNames[day] + " " + String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + ".";
+          days.push({ iso: iso, label: label });
+        }
+        d.setDate(d.getDate() + 1);
+      }
+      return days;
+    }
+
+    function resetApptWidget() {
+      apptMode = null;
+      apptDate = null;
+      apptSlot = null;
+      apptStatus.textContent = "";
+      apptSlotsRow.innerHTML = "";
+      Array.prototype.forEach.call(document.querySelectorAll(".appt-mode-btn"), function (btn) {
+        btn.style.background = "var(--color-bg-soft, #eaf2fc)";
+        btn.style.color = "var(--color-text, #0b0b0b)";
+      });
+      renderApptDays();
+    }
+
+    function renderApptDays() {
+      var days = nextWeekdaysAppt(10);
+      apptDaysRow.innerHTML = "";
+      days.forEach(function (d) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = d.label;
+        btn.className = "crm-btn crm-btn--sm";
+        btn.style.flexShrink = "0";
+        btn.style.background = "var(--color-bg-soft, #eaf2fc)";
+        btn.style.color = "var(--color-text, #0b0b0b)";
+        btn.addEventListener("click", function () {
+          apptDate = d.iso;
+          apptSlot = null;
+          Array.prototype.forEach.call(apptDaysRow.children, function (b) {
+            b.style.background = "var(--color-bg-soft, #eaf2fc)";
+            b.style.color = "var(--color-text, #0b0b0b)";
+          });
+          btn.style.background = "var(--color-primary, #2a78d6)";
+          btn.style.color = "#fff";
+          loadApptSlots(d.iso);
+        });
+        apptDaysRow.appendChild(btn);
+      });
+    }
+
+    function loadApptSlots(dateIso) {
+      apptSlotsRow.innerHTML = '<span class="crm-hint">Wird geladen …</span>';
+      fetch(MSNEXO_WEBSITE_ORIGIN + "/api/appointments/availability?date=" + dateIso)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          var slots = data.slots || [];
+          apptSlotsRow.innerHTML = "";
+          if (!slots.length) {
+            apptSlotsRow.innerHTML = '<span class="crm-hint">An diesem Tag ist nichts mehr frei.</span>';
+            return;
+          }
+          slots.forEach(function (s) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.textContent = s;
+            btn.className = "crm-btn crm-btn--sm";
+            btn.style.background = "var(--color-bg-soft, #eaf2fc)";
+            btn.style.color = "var(--color-text, #0b0b0b)";
+            btn.addEventListener("click", function () {
+              apptSlot = s;
+              Array.prototype.forEach.call(apptSlotsRow.children, function (b) {
+                b.style.background = "var(--color-bg-soft, #eaf2fc)";
+                b.style.color = "var(--color-text, #0b0b0b)";
+              });
+              btn.style.background = "var(--color-primary, #2a78d6)";
+              btn.style.color = "#fff";
+            });
+            apptSlotsRow.appendChild(btn);
+          });
+        })
+        .catch(function () {
+          apptSlotsRow.innerHTML = '<span class="crm-hint">Verfügbarkeit konnte nicht geladen werden.</span>';
+        });
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".appt-mode-btn"), function (btn) {
+      btn.addEventListener("click", function () {
+        apptMode = btn.getAttribute("data-mode");
+        Array.prototype.forEach.call(document.querySelectorAll(".appt-mode-btn"), function (b) {
+          b.style.background = "var(--color-bg-soft, #eaf2fc)";
+          b.style.color = "var(--color-text, #0b0b0b)";
+        });
+        btn.style.background = "var(--color-primary, #2a78d6)";
+        btn.style.color = "#fff";
+      });
+    });
+
+    apptBookBtn.addEventListener("click", function () {
+      if (!selectedLeadId) return;
+      if (!apptMode || !apptDate || !apptSlot) {
+        apptStatus.textContent = "Bitte Art, Tag und Uhrzeit auswählen.";
+        return;
+      }
+      var name = apptNameInput.value.trim();
+      var email = apptEmailInput.value.trim();
+      if (!name || !email) {
+        apptStatus.textContent = "Bitte Name und E-Mail des Kunden angeben.";
+        return;
+      }
+      apptStatus.textContent = "Wird gebucht …";
+      fetch(MSNEXO_WEBSITE_ORIGIN + "/api/appointments/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          phone: apptPhoneInput.value.trim(),
+          mode: apptMode,
+          date: apptDate,
+          slot: apptSlot,
+          leadId: selectedLeadId,
+          createdBy: "admin"
+        })
+      })
+        .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+          if (!result.ok) {
+            apptStatus.textContent = result.data.error === "slot_taken"
+              ? "Dieser Termin wurde gerade vergeben. Bitte anderen wählen."
+              : "Buchung fehlgeschlagen. Bitte erneut versuchen.";
+            if (result.data.error === "slot_taken") loadApptSlots(apptDate);
+            return;
+          }
+          if (result.data.meetLink) {
+            apptStatus.innerHTML = "Termin gebucht ✓ Meet-Link (in Zwischenablage kopiert): " +
+              '<a href="' + result.data.meetLink + '" target="_blank" rel="noopener">' + result.data.meetLink + "</a>";
+            navigator.clipboard.writeText(result.data.meetLink).catch(function () {});
+          } else {
+            apptStatus.textContent = "Termin gebucht ✓";
+          }
+          loadHistory(selectedLeadId);
+        })
+        .catch(function () {
+          apptStatus.textContent = "Buchung fehlgeschlagen. Bitte erneut versuchen.";
+        });
+    });
 
     addLeadBtn.addEventListener("click", function () { addLeadOverlay.hidden = false; });
     addLeadClose.addEventListener("click", function () { addLeadOverlay.hidden = true; });

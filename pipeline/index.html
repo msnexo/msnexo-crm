@@ -132,6 +132,21 @@
       <button type="button" id="addPersonBtn" class="crm-btn crm-btn--dark crm-btn--sm">+ Hinzufügen</button>
     </div>
 
+    <h4 style="margin-top:24px;">📅 Termin fest vereinbaren</h4>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button type="button" class="crm-btn appt-mode-btn" data-mode="online" style="flex:1;">💻 Online</button>
+      <button type="button" class="crm-btn appt-mode-btn" data-mode="vor_ort" style="flex:1;">📍 Vor Ort</button>
+    </div>
+    <div id="apptDaysRow" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:4px;"></div>
+    <div id="apptSlotsRow" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(60px, 1fr));gap:6px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+      <input type="text" id="apptName" placeholder="Name" style="flex:1;min-width:140px;">
+      <input type="email" id="apptEmail" placeholder="E-Mail" style="flex:1;min-width:160px;">
+      <input type="tel" id="apptPhone" placeholder="Telefon (optional)" style="flex:1;min-width:120px;">
+    </div>
+    <p class="crm-hint" id="apptStatus"></p>
+    <button type="button" id="apptBookBtn" class="crm-btn crm-btn--primary" style="width:100%;">Termin fest buchen</button>
+
     <h4 style="margin-top:24px;">Logeintrag</h4>
     <label class="crm-field-label" for="nextContactNotes">Notiz / Was wurde besprochen?</label>
     <textarea id="nextContactNotes" rows="2" placeholder="z. B. Voicemail hinterlassen, Interesse vorhanden …"></textarea>
