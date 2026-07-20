@@ -138,7 +138,11 @@
       <button type="button" class="crm-btn appt-mode-btn" data-mode="vor_ort" style="flex:1;">📍 Vor Ort</button>
     </div>
     <div id="apptDaysRow" style="display:flex;gap:6px;overflow-x:auto;margin-bottom:10px;padding-bottom:4px;"></div>
-    <div id="apptSlotsRow" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(60px, 1fr));gap:6px;margin-bottom:10px;"></div>
+    <div id="apptBusyHint" class="crm-hint" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+      <label class="crm-field-label" for="apptTime" style="margin:0;white-space:nowrap;">Uhrzeit (9-18 Uhr, Start der vollen Stunde)</label>
+      <input type="time" id="apptTime" min="09:00" max="18:00" step="900" style="max-width:140px;">
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <input type="text" id="apptName" placeholder="Name" style="flex:1;min-width:140px;">
       <input type="email" id="apptEmail" placeholder="E-Mail" style="flex:1;min-width:160px;">

@@ -117,9 +117,10 @@
 
     var apptMode = null;
     var apptDate = null;
-    var apptSlot = null;
+    var apptBusy = [];
     var apptDaysRow = document.getElementById("apptDaysRow");
-    var apptSlotsRow = document.getElementById("apptSlotsRow");
+    var apptBusyHint = document.getElementById("apptBusyHint");
+    var apptTimeInput = document.getElementById("apptTime");
     var apptStatus = document.getElementById("apptStatus");
     var apptBookBtn = document.getElementById("apptBookBtn");
     var apptNameInput = document.getElementById("apptName");
@@ -397,9 +398,10 @@
     function resetApptWidget() {
       apptMode = null;
       apptDate = null;
-      apptSlot = null;
+      apptBusy = [];
       apptStatus.textContent = "";
-      apptSlotsRow.innerHTML = "";
+      apptBusyHint.textContent = "";
+      apptTimeInput.value = "";
       Array.prototype.forEach.call(document.querySelectorAll(".appt-mode-btn"), function (btn) {
         btn.style.background = "var(--color-bg-soft, #eaf2fc)";
         btn.style.color = "var(--color-text, #0b0b0b)";
@@ -420,51 +422,36 @@
         btn.style.color = "var(--color-text, #0b0b0b)";
         btn.addEventListener("click", function () {
           apptDate = d.iso;
-          apptSlot = null;
+          apptTimeInput.value = "";
           Array.prototype.forEach.call(apptDaysRow.children, function (b) {
             b.style.background = "var(--color-bg-soft, #eaf2fc)";
             b.style.color = "var(--color-text, #0b0b0b)";
           });
           btn.style.background = "var(--color-primary, #2a78d6)";
           btn.style.color = "#fff";
-          loadApptSlots(d.iso);
+          loadApptBusy(d.iso);
         });
         apptDaysRow.appendChild(btn);
       });
     }
 
-    function loadApptSlots(dateIso) {
-      apptSlotsRow.innerHTML = '<span class="crm-hint">Wird geladen …</span>';
+    function loadApptBusy(dateIso) {
+      apptBusyHint.textContent = "Belegte Zeiten werden geladen …";
       fetch(MSNEXO_WEBSITE_ORIGIN + "/api/appointments/availability?date=" + dateIso)
         .then(function (res) { return res.json(); })
         .then(function (data) {
-          var slots = data.slots || [];
-          apptSlotsRow.innerHTML = "";
-          if (!slots.length) {
-            apptSlotsRow.innerHTML = '<span class="crm-hint">An diesem Tag ist nichts mehr frei.</span>';
+          apptBusy = data.busy || [];
+          if (!apptBusy.length) {
+            apptBusyHint.textContent = "Der ganze Tag ist frei (9-19 Uhr).";
             return;
           }
-          slots.forEach(function (s) {
-            var btn = document.createElement("button");
-            btn.type = "button";
-            btn.textContent = s;
-            btn.className = "crm-btn crm-btn--sm";
-            btn.style.background = "var(--color-bg-soft, #eaf2fc)";
-            btn.style.color = "var(--color-text, #0b0b0b)";
-            btn.addEventListener("click", function () {
-              apptSlot = s;
-              Array.prototype.forEach.call(apptSlotsRow.children, function (b) {
-                b.style.background = "var(--color-bg-soft, #eaf2fc)";
-                b.style.color = "var(--color-text, #0b0b0b)";
-              });
-              btn.style.background = "var(--color-primary, #2a78d6)";
-              btn.style.color = "#fff";
-            });
-            apptSlotsRow.appendChild(btn);
-          });
+          apptBusyHint.textContent = "Bereits belegt: " + apptBusy.map(function (b) {
+            return b.start + "–" + b.end;
+          }).join(", ");
         })
         .catch(function () {
-          apptSlotsRow.innerHTML = '<span class="crm-hint">Verfügbarkeit konnte nicht geladen werden.</span>';
+          apptBusy = [];
+          apptBusyHint.textContent = "Verfügbarkeit konnte nicht geladen werden.";
         });
     }
 
@@ -480,10 +467,31 @@
       });
     });
 
+    function timeToMinutes(hhmm) {
+      var parts = hhmm.split(":");
+      return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+
     apptBookBtn.addEventListener("click", function () {
       if (!selectedLeadId) return;
-      if (!apptMode || !apptDate || !apptSlot) {
+      var time = apptTimeInput.value;
+      if (!apptMode || !apptDate || !time) {
         apptStatus.textContent = "Bitte Art, Tag und Uhrzeit auswählen.";
+        return;
+      }
+      var startMin = timeToMinutes(time);
+      var endMin = startMin + 60;
+      if (startMin < 9 * 60 || endMin > 19 * 60) {
+        apptStatus.textContent = "Bitte eine Startzeit zwischen 09:00 und 18:00 wählen.";
+        return;
+      }
+      var overlapsBusy = apptBusy.some(function (b) {
+        var bs = timeToMinutes(b.start);
+        var be = timeToMinutes(b.end);
+        return startMin < be && bs < endMin;
+      });
+      if (overlapsBusy) {
+        apptStatus.textContent = "Diese Zeit überschneidet sich mit einem bereits belegten Termin.";
         return;
       }
       var name = apptNameInput.value.trim();
@@ -502,7 +510,7 @@
           phone: apptPhoneInput.value.trim(),
           mode: apptMode,
           date: apptDate,
-          slot: apptSlot,
+          time: time,
           leadId: selectedLeadId,
           createdBy: "admin"
         })
@@ -511,9 +519,9 @@
         .then(function (result) {
           if (!result.ok) {
             apptStatus.textContent = result.data.error === "slot_taken"
-              ? "Dieser Termin wurde gerade vergeben. Bitte anderen wählen."
+              ? "Dieser Termin wurde gerade vergeben. Bitte andere Zeit wählen."
               : "Buchung fehlgeschlagen. Bitte erneut versuchen.";
-            if (result.data.error === "slot_taken") loadApptSlots(apptDate);
+            if (result.data.error === "slot_taken") loadApptBusy(apptDate);
             return;
           }
           if (result.data.meetLink) {
