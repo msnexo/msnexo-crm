@@ -106,6 +106,12 @@
     var addLeadClose = document.getElementById("addLeadClose");
     var addLeadForm = document.getElementById("addLeadForm");
     var addLeadStatus = document.getElementById("addLeadStatus");
+    var newLeadPeople = [];
+    var newLeadPeopleListEl = document.getElementById("newLeadPeopleList");
+    var leadPersonNameInput = document.getElementById("leadPersonName");
+    var leadPersonPhoneInput = document.getElementById("leadPersonPhone");
+    var leadPersonEmailInput = document.getElementById("leadPersonEmail");
+    var addNewLeadPersonBtn = document.getElementById("addNewLeadPersonBtn");
 
     var pipelineLeads = document.getElementById("pipelineLeads");
     var pipelineOverdue = document.getElementById("pipelineOverdue");
@@ -304,6 +310,43 @@
         );
       }).join("");
     }
+
+    function renderNewLeadPeople() {
+      if (!newLeadPeople.length) {
+        newLeadPeopleListEl.innerHTML = "";
+        return;
+      }
+      newLeadPeopleListEl.innerHTML = newLeadPeople.map(function (p, i) {
+        var meta = [p.phone, p.email].filter(Boolean).map(escapeHtml).join(" · ");
+        return (
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;background:var(--color-border);border-radius:8px;margin-bottom:6px;">' +
+          "<div><strong>" + escapeHtml(p.name) + "</strong>" + (meta ? ' <span class="crm-muted" style="font-size:0.85rem;">' + meta + "</span>" : "") + "</div>" +
+          '<button type="button" data-idx="' + i + '" class="crm-btn crm-btn--sm removeNewLeadPersonBtn">✕</button>' +
+          "</div>"
+        );
+      }).join("");
+      Array.prototype.forEach.call(newLeadPeopleListEl.querySelectorAll(".removeNewLeadPersonBtn"), function (btn) {
+        btn.addEventListener("click", function () {
+          newLeadPeople.splice(Number(btn.getAttribute("data-idx")), 1);
+          renderNewLeadPeople();
+        });
+      });
+    }
+
+    addNewLeadPersonBtn.addEventListener("click", function () {
+      var name = leadPersonNameInput.value.trim();
+      if (!name) return;
+      newLeadPeople.push({
+        name: name,
+        phone: leadPersonPhoneInput.value.trim(),
+        email: leadPersonEmailInput.value.trim()
+      });
+      leadPersonNameInput.value = "";
+      leadPersonPhoneInput.value = "";
+      leadPersonEmailInput.value = "";
+      renderNewLeadPeople();
+      leadPersonNameInput.focus();
+    });
 
     function loadPeople(leadId) {
       return client.from("lead_people").select("*").eq("lead_id", leadId).order("created_at", { ascending: true }).then(function (res) {
@@ -539,7 +582,12 @@
     });
 
     addLeadBtn.addEventListener("click", function () { addLeadOverlay.hidden = false; });
-    addLeadClose.addEventListener("click", function () { addLeadOverlay.hidden = true; });
+    addLeadClose.addEventListener("click", function () {
+      addLeadOverlay.hidden = true;
+      addLeadForm.reset();
+      newLeadPeople = [];
+      renderNewLeadPeople();
+    });
     detailClose.addEventListener("click", function () {
       detailOverlay.hidden = true;
       selectedLeadId = null;
@@ -617,25 +665,31 @@
       var status = document.getElementById("leadStatus").value;
       var website = document.getElementById("leadWebsite").value.trim() || null;
       var address = document.getElementById("leadAddress").value.trim() || null;
-      var person = {
-        name: document.getElementById("leadPersonName").value.trim(),
-        phone: document.getElementById("leadPersonPhone").value.trim(),
-        email: document.getElementById("leadPersonEmail").value.trim()
+      var pendingPerson = {
+        name: leadPersonNameInput.value.trim(),
+        phone: leadPersonPhoneInput.value.trim(),
+        email: leadPersonEmailInput.value.trim()
       };
+      var allPeople = newLeadPeople.slice();
+      if (pendingPerson.name) allPeople.push(pendingPerson);
       if (!name) return;
       addLeadStatus.textContent = "Wird angelegt …";
       addLeadStatus.className = "crm-form-status";
       client.from("leads").insert({ name: name, category: category, status: status, website: website, address: address, assigned_to: currentUser }).select().single().then(function (res) {
         if (res.error) throw res.error;
         var lead = res.data;
-        if (person.name) {
-          return client.from("lead_people").insert({ lead_id: lead.id, name: person.name, phone: person.phone || null, email: person.email || null });
+        if (allPeople.length > 0) {
+          return Promise.all(allPeople.map(function (p) {
+            return client.from("lead_people").insert({ lead_id: lead.id, name: p.name, phone: p.phone || null, email: p.email || null });
+          }));
         }
         return lead;
       }).then(function () {
         addLeadStatus.textContent = "Angelegt.";
         addLeadStatus.className = "crm-form-status crm-form-status--ok";
         addLeadForm.reset();
+        newLeadPeople = [];
+        renderNewLeadPeople();
         addLeadOverlay.hidden = true;
         loadLeads();
       }).catch(function () {

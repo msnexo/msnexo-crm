@@ -76,12 +76,14 @@
       <input type="url" id="leadWebsite" placeholder="https://...">
       <label class="crm-field-label" for="leadAddress">Adresse (optional)</label>
       <input type="text" id="leadAddress">
-      <label class="crm-field-label" for="leadPersonName">Ansprechpartner (optional)</label>
-      <input type="text" id="leadPersonName">
-      <label class="crm-field-label" for="leadPersonPhone">Telefon (optional)</label>
-      <input type="tel" id="leadPersonPhone">
-      <label class="crm-field-label" for="leadPersonEmail">E-Mail (optional)</label>
-      <input type="email" id="leadPersonEmail">
+      <label class="crm-field-label">Ansprechpartner (optional, mehrere möglich)</label>
+      <div id="newLeadPeopleList"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="text" id="leadPersonName" placeholder="Name" style="flex:1;min-width:120px;">
+        <input type="tel" id="leadPersonPhone" placeholder="Telefon" style="flex:1;min-width:120px;">
+        <input type="email" id="leadPersonEmail" placeholder="E-Mail" style="flex:1;min-width:160px;">
+        <button type="button" id="addNewLeadPersonBtn" class="crm-btn crm-btn--dark crm-btn--sm">+ Weiteren hinzufügen</button>
+      </div>
       <p class="crm-form-status" id="addLeadStatus" role="status" aria-live="polite"></p>
       <button type="submit" class="crm-btn crm-btn--primary">Anlegen</button>
     </form>
