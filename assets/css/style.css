@@ -130,6 +130,14 @@ h4 { margin: 0 0 8px; }
 .crm-form textarea:focus {
   border-color: var(--color-primary);
 }
+.crm-form textarea {
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 90px;
+}
+.crm-notes-textarea {
+  min-height: 160px;
+}
 .crm-search-input { max-width: 380px; margin-bottom: 20px; }
 
 .crm-form-status { font-size: 13px; min-height: 1.2em; margin: 6px 0 0; }

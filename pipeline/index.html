@@ -122,8 +122,11 @@
     </div>
 
     <label class="crm-field-label" for="leadDetailNotes">Notizen</label>
-    <textarea id="leadDetailNotes" rows="3"></textarea>
-    <button type="button" id="leadDetailSaveNotes" class="crm-btn crm-btn--dark crm-btn--sm">Speichern</button>
+    <textarea id="leadDetailNotes" class="crm-notes-textarea" rows="8"></textarea>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button type="button" id="leadDetailSaveNotes" class="crm-btn crm-btn--dark crm-btn--sm">Speichern</button>
+      <span id="notesSaveStatus" class="crm-hint"></span>
+    </div>
 
     <h4 style="margin-top:24px;">Ansprechpartner</h4>
     <div id="leadDetailPeople"></div>
@@ -155,7 +158,7 @@
 
     <h4 style="margin-top:24px;">Logeintrag</h4>
     <label class="crm-field-label" for="nextContactNotes">Notiz / Was wurde besprochen?</label>
-    <textarea id="nextContactNotes" rows="2" placeholder="z. B. Voicemail hinterlassen, Interesse vorhanden …"></textarea>
+    <textarea id="nextContactNotes" rows="4" placeholder="z. B. Voicemail hinterlassen, Interesse vorhanden …"></textarea>
     <label class="crm-field-label" for="nextContactDate">Nächster Kontakt am (optional)</label>
     <div style="display:flex;gap:8px;align-items:center;">
       <input type="datetime-local" id="nextContactDate" style="flex:1;">

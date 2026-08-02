@@ -141,6 +141,7 @@
     var detailCategoryInput = document.getElementById("leadDetailCategoryInput");
     var detailNotes = document.getElementById("leadDetailNotes");
     var saveNotesBtn = document.getElementById("leadDetailSaveNotes");
+    var notesSaveStatus = document.getElementById("notesSaveStatus");
     var peopleListEl = document.getElementById("leadDetailPeople");
     var newPersonName = document.getElementById("newPersonName");
     var newPersonPhone = document.getElementById("newPersonPhone");
@@ -702,6 +703,7 @@
       if (!selectedLeadId) return;
       var nameVal = detailNameInput.value.trim();
       if (!nameVal) return;
+      notesSaveStatus.textContent = "Speichert …";
       client.from("leads").update({
         name: nameVal,
         category: detailCategoryInput.value.trim() || "Website",
@@ -709,6 +711,8 @@
         website: detailWebsite.value.trim() || null,
         address: detailAddress.value.trim() || null
       }).eq("id", selectedLeadId).then(function () {
+        notesSaveStatus.textContent = "Gespeichert ✓";
+        setTimeout(function () { notesSaveStatus.textContent = ""; }, 2500);
         loadLeads();
       });
     });
